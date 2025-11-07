@@ -39,6 +39,34 @@ let axis = 0
 
 const ctx = canvas.getContext("2d")
 
+async function livelyCurrentTrack(data) {
+  let obj = JSON.parse(data);
+  //when no track is playing its null
+  if (obj != null) {
+    if (obj.Thumbnail != null) {
+      const base64String = !obj.Thumbnail.startsWith("data:image/")
+        ? "data:image/png;base64," + obj.Thumbnail
+        : obj.Thumbnail;
+
+      middle.src = base64String;
+      document.body.style.backgroundImage = `url(${base64String})`;
+
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      const img = new Image();
+      img.src = base64String;
+    }
+
+    if (material != null) material.uniforms.u_center.value = true;
+    trackContainer.style.opacity = 1;
+  } else {
+    setTexture(backgroundSrcDefault);
+    if (material != null) material.uniforms.u_center.value = false;
+
+    trackContainer.style.opacity = 0;
+  }
+}
+
 function livelyAudioListener(audioArray) {
   // Set overall level
   average = audioArray.reduce((acc, val) => acc + val) / audioArray.length

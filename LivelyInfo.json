@@ -9,6 +9,6 @@
   "Contact": "https://github.com/elias123tre/lively-audio-visualizer",
   "Type": 2,
   "FileName": "index.html",
-  "Arguments": null,
+  "Arguments": "--system-nowplaying",
   "IsAbsolutePath": false
 }

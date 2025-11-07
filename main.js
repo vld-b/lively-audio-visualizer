@@ -50,11 +50,6 @@ async function livelyCurrentTrack(data) {
 
       middle.src = base64String;
       document.body.style.backgroundImage = `url(${base64String})`;
-
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      const img = new Image();
-      img.src = base64String;
     }
 
     if (material != null) material.uniforms.u_center.value = true;

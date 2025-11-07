@@ -39,6 +39,32 @@ let axis = 0
 
 const ctx = canvas.getContext("2d")
 
+function rgbToHue(r, g, b) {
+  r /= 255;
+  g /= 255;
+  b /= 255;
+
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const delta = max - min;
+
+  if (delta === 0) return 0; // grayscale — hue undefined, so default to 0
+
+  let h;
+  if (max === r) {
+    h = ((g - b) / delta) % 6;
+  } else if (max === g) {
+    h = (b - r) / delta + 2;
+  } else {
+    h = (r - g) / delta + 4;
+  }
+
+  h *= 60;
+  if (h < 0) h += 360;
+
+  return Math.round(h);
+}
+
 async function livelyCurrentTrack(data) {
   let obj = JSON.parse(data);
   //when no track is playing its null
@@ -49,7 +75,34 @@ async function livelyCurrentTrack(data) {
         : obj.Thumbnail;
 
       middle.src = base64String;
-      document.body.style.backgroundImage = `url(${base64String})`;
+
+      // Set startHue and endHue based on average color of the image
+      const res = await fetch(base64String);
+      const blob = await res.blob();
+
+      const bmp = await createImageBitmap(blob);
+
+      const canvas = new OffscreenCanvas(bmp.width, bmp.height);
+      const ctx = canvas.getContext("2d");
+
+      ctx.drawImage(bmp, 0, 0);
+
+      const imgData = ctx.getImageData(0, 0, bmp.width, bmp.height);
+
+      let r = 0, g = 0, b = 0;
+      const totalPixels = imgData.data.length / 4;
+      for (let i = 0; i < imgData.data.length; i+=4) {
+        r += imgData.data[i];
+        g += imgData.data[i+1];
+        b += imgData.data[i+2];
+      }
+
+      r = Math.floor(r / totalPixels);
+      g = Math.floor(g / totalPixels);
+      b = Math.floor(b / totalPixels);
+
+      startHue = Math.max(0, rgbToHue(r, g, b) - 20);
+      endHue = Math.min(360, rgbToHue(r, g, b) + 40);
     }
 
     if (material != null) material.uniforms.u_center.value = true;
@@ -147,7 +200,7 @@ function livelyPropertyListener(name, val) {
       barPercent = val
       break
     case "bgImage":
-      document.body.style.backgroundImage = `url(/${val.replace(/\\/g, "/")})`
+      // document.body.style.backgroundImage = `url(/${val.replace(/\\/g, "/")})`
       break
     case "bgBlur":
       document.body.style.backdropFilter = `blur(${Math.round(val)}px)`
